@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "699692984203",
+    "project_id": "landregistry-15941",
+    "storage_bucket": "landregistry-15941.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699692984203:android:c3e01bd3f04a211d15b18e",
+        "android_client_info": {
+          "package_name": "com.example.landsystem"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzGyfvqq0iOV-wsg0xkxzPXXvirJxInMM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
