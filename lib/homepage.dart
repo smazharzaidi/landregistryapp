@@ -6,6 +6,8 @@ import 'login.dart';
 import 'profile.dart';
 
 class HomePage extends StatelessWidget {
+  HomePage({Key? key}) : super(key: key);
+
   void _openDrawer(BuildContext context) {
     Scaffold.of(context).openDrawer();
   }
@@ -27,8 +29,7 @@ class HomePage extends StatelessWidget {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .primaryColor, // Use primary color from the theme
+                color: Theme.of(context).primaryColor,
               ),
               child: Text(
                 'Menu',
@@ -52,7 +53,8 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SalePurchase()),
+                  MaterialPageRoute(
+                      builder: (context) => SalePurchase(key: UniqueKey())),
                 );
               },
             ),
