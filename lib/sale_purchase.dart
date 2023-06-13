@@ -1,9 +1,36 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'help_support.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class CNICInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final newText = newValue.text;
+
+    String formattedText = '';
+
+    for (int i = 0; i < newText.length; i++) {
+      formattedText += newText[i];
+      if (i == 4 || i == 11) {
+        formattedText += '-';
+      }
+    }
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+}
 
 class SalePurchase extends StatefulWidget {
   SalePurchase({required Key key}) : super(key: key);
@@ -25,11 +52,47 @@ class _SalePurchaseState extends State<SalePurchase> {
   Circle? _midPointCircle;
   Set<Marker> _markers = {};
 
+  List<DocumentSnapshot>? _landDocuments;
+  String? _selectedLandDocumentId;
+
   @override
   void dispose() {
     cnicController.dispose();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLandDocuments();
+  }
+
+  void _fetchLandDocuments() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userCNIC = user.uid;
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCNIC)
+          .get();
+
+      if (userSnapshot.exists) {
+        String userCnic = userSnapshot['cnic'];
+
+        QuerySnapshot snapshot = await FirebaseFirestore.instance
+            .collection('landRecords')
+            .where('userCNIC', isEqualTo: userCnic)
+            .get();
+
+        setState(() {
+          _landDocuments = snapshot.docs;
+          _selectedLandDocumentId = _landDocuments!.isNotEmpty
+              ? _landDocuments![0].id
+              : null; // Set the initial selected document id
+        });
+      }
+    }
   }
 
   void _openDrawer(BuildContext context) {
@@ -38,10 +101,52 @@ class _SalePurchaseState extends State<SalePurchase> {
 
   void _submitForm() {
     // Handle form submission
+    String buyerCNIC = cnicController.text.trim();
+
+    // Check if the buyer CNIC exists in the users table
+    _checkBuyerCNICExists(buyerCNIC);
+  }
+
+  void _checkBuyerCNICExists(String cnic) async {
+    print('Checking buyer CNIC: $cnic');
+
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('cnic', isEqualTo: cnic)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      // Transfer land ownership to the buyer
+      _transferLandOwnership(cnic);
+    } else {
+      // Show error message if the buyer CNIC is not found
+      _showSnackbar('CNIC does not exist');
+    }
+  }
+
+  void _transferLandOwnership(String buyerCNIC) async {
+    // Query the 'users' collection to find the buyer with the matching CNIC
+    QuerySnapshot usersSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('cnic', isEqualTo: buyerCNIC)
+        .get();
+
+    if (usersSnapshot.docs.isNotEmpty) {
+      // Transfer land ownership to the buyer by updating the userCNIC field
+      await FirebaseFirestore.instance
+          .collection('landRecords')
+          .doc(_selectedLandDocumentId)
+          .update({'userCNIC': buyerCNIC});
+
+      _showSnackbar('Land ownership transferred successfully');
+    } else {
+      _showSnackbar('CNIC does not exist');
+    }
   }
 
   void _addMarker(LatLng position) {
-    final markerId = MarkerId(position.toString());        //ye masla hy
+    final markerId = MarkerId(position.toString());
 
     Marker? marker;
 
@@ -122,62 +227,6 @@ class _SalePurchaseState extends State<SalePurchase> {
     });
   }
 
-  // void _updateMidPoint() {
-  //   if (_polygonPoints.length > 1) {
-  //     final double sumLat =
-  //         _polygonPoints.fold(0, (prev, element) => prev + element.latitude);
-  //     final double sumLng =
-  //         _polygonPoints.fold(0, (prev, element) => prev + element.longitude);
-  //     final int count = _polygonPoints.length;
-
-  //     final LatLng midPoint = LatLng(sumLat / count, sumLng / count);
-
-  //     if (_midPoint == null) {
-  //       _midPoint = midPoint;
-  //       _addMidPointCircle();
-  //     } else {
-  //       setState(() {
-  //         _midPoint = midPoint;
-  //         _moveMidPointCircle();
-  //       });
-  //     }
-  //   } else {
-  //     setState(() {
-  //       _midPoint = null;
-  //       _midPointCircle = null;
-  //     });
-  //   }
-  // }
-
-  // void _addMidPointCircle() {
-  //   final Circle midPointCircle = Circle(
-  //     circleId: CircleId('midPoint'),
-  //     center: _midPoint!,
-  //     radius: 10, // Adjust the radius to your preference
-  //     fillColor: Colors.red.withOpacity(0.5),
-  //     strokeWidth: 0,
-  //     consumeTapEvents: true,
-  //   );
-
-  //   setState(() {
-  //     _midPointCircle = midPointCircle;
-  //   });
-  // }
-
-  // void _moveMidPointCircle() {
-  //   final Circle updatedMidPointCircle =
-  //       _midPointCircle!.copyWith(centerParam: _midPoint!);
-
-  //   final updatedCircles = Set<Circle>.from(_circles);
-  //   updatedCircles.remove(_midPointCircle);
-  //   updatedCircles.add(updatedMidPointCircle);
-
-  //   setState(() {
-  //     _midPointCircle = updatedMidPointCircle;
-  //     _circles = updatedCircles;
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,8 +268,7 @@ class _SalePurchaseState extends State<SalePurchase> {
                 // Handle Help and Support menu item tap
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => HelpSupportPage()),
+                  MaterialPageRoute(builder: (context) => HelpSupportPage()),
                 );
               },
             ),
@@ -229,6 +277,25 @@ class _SalePurchaseState extends State<SalePurchase> {
       ),
       body: Column(
         children: [
+          _landDocuments != null
+              ? DropdownButton<String>(
+                  value: _selectedLandDocumentId,
+                  items: _landDocuments!
+                      .map((doc) => DropdownMenuItem<String>(
+                            value: doc.id,
+                            child: Text(
+                              '${doc['Khasra']}, ${doc['Division']}, ${doc['Tehsil']}',
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedLandDocumentId = value;
+                    });
+                    _updateMarkersAndPolygons(value);
+                  },
+                )
+              : SizedBox(),
           Expanded(
             child: GoogleMap(
               mapType: MapType.normal,
@@ -245,7 +312,8 @@ class _SalePurchaseState extends State<SalePurchase> {
               },
               gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
                 Factory<OneSequenceGestureRecognizer>(
-                    () => ScaleGestureRecognizer()),
+                  () => ScaleGestureRecognizer(),
+                ),
               ].toSet(),
             ),
           ),
@@ -268,6 +336,11 @@ class _SalePurchaseState extends State<SalePurchase> {
                     hintText: 'CNIC',
                     border: OutlineInputBorder(),
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(15),
+                    CNICInputFormatter(),
+                  ],
                 ),
                 SizedBox(height: 16),
                 ElevatedButton(
@@ -288,6 +361,86 @@ class _SalePurchaseState extends State<SalePurchase> {
           ),
         ],
       ),
+    );
+  }
+
+  void _updateMarkersAndPolygons(String? landDocumentId) {
+    setState(() {
+      _markers.clear();
+      _polygonPoints.clear();
+      _polylines.clear();
+
+      if (landDocumentId != null) {
+        DocumentSnapshot<Object?>? selectedDocument;
+
+        for (var doc in _landDocuments!) {
+          if (doc.id == landDocumentId) {
+            selectedDocument = doc;
+            break;
+          }
+        }
+
+        if (selectedDocument != null) {
+          List<dynamic> cornerPoints = selectedDocument['CornerPoints'];
+          for (var point in cornerPoints) {
+            double latitude = point.latitude;
+            double longitude = point.longitude;
+            LatLng position = LatLng(latitude, longitude);
+            final markerId = MarkerId(position.toString());
+
+            Marker newMarker = Marker(
+              markerId: markerId,
+              position: position,
+              draggable: true,
+              onDragEnd: (newPosition) {
+                _onMarkerDragEnd(markerId, newPosition);
+              },
+              infoWindow: InfoWindow(
+                title: 'Marker',
+              ),
+            );
+
+            _markers.add(newMarker);
+            _polygonPoints.add(position);
+          }
+
+          _updatePolygons();
+        }
+      }
+    });
+  }
+
+  String _getLandDescription(DocumentSnapshot doc) {
+    String khasra = doc['Khasra'];
+    String division = doc['Division'];
+    String tehsil = doc['Tehsil'];
+
+    if (division != null && division.isNotEmpty) {
+      return '$khasra, $division, $tehsil';
+    } else {
+      return '$khasra, $tehsil';
+    }
+  }
+
+  void _showSnackbar(String message) {
+    final snackbar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackbar);
+  }
+}
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Sale Purchase App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: SalePurchase(key: UniqueKey()),
     );
   }
 }

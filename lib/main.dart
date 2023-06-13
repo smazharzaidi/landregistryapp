@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'sale_purchase.dart';
 import 'signup.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'homepage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +23,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(primarySwatch: Colors.orange),
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: SignUp(),
     );
   }
 }
