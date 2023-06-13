@@ -8,6 +8,8 @@ import 'help_support.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'profile.dart';
+
 class CNICInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -252,23 +254,47 @@ class _SalePurchaseState extends State<SalePurchase> {
       drawer: Drawer(
         child: ListView(
           children: [
-            ListTile(
-              title: const Text(
-                'Sell Your Land',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
               ),
-              onTap: () {
-                // Handle Sell Your Land menu item tap
-                Navigator.pop(context); // Close the drawer
-              },
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
             ),
             ListTile(
-              title: const Text('Help and Support'),
+              title: Text('Help & Support'),
               onTap: () {
-                // Handle Help and Support menu item tap
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => HelpSupportPage()),
+                );
+              },
+            ),
+            ListTile(
+              title: Text('Sale & Purchase'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => SalePurchase(key: UniqueKey())),
+                );
+              },
+            ),
+            ListTile(
+              title: Text('Logout'),
+              onTap: () => _logout(context),
+            ),
+            ListTile(
+              title: Text('Profile'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Profile()),
                 );
               },
             ),
@@ -426,6 +452,10 @@ class _SalePurchaseState extends State<SalePurchase> {
     final snackbar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
+}
+
+class _logout {
+  _logout(BuildContext context);
 }
 
 void main() {
