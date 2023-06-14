@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'help_support.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'login.dart';
 import 'profile.dart';
 
 class CNICInputFormatter extends TextInputFormatter {
@@ -237,14 +237,16 @@ class _SalePurchaseState extends State<SalePurchase> {
         title: Text(
           'Sell Your Land',
           style: GoogleFonts.sora(
-            fontSize: 18,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
+            
           ),
         ),
         leading: IconButton(
           icon: const Icon(
             Icons.menu,
-            color: Colors.white,
+            color: Color.fromARGB(255, 10, 10, 10),
           ),
           onPressed: () {
             _openDrawer(context);
@@ -263,6 +265,7 @@ class _SalePurchaseState extends State<SalePurchase> {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -285,7 +288,7 @@ class _SalePurchaseState extends State<SalePurchase> {
                 );
               },
             ),
-            ListTile(
+           ListTile(
               title: Text('Logout'),
               onTap: () => _logout(context),
             ),
@@ -454,13 +457,18 @@ class _SalePurchaseState extends State<SalePurchase> {
   }
 }
 
-class _logout {
-  _logout(BuildContext context);
-}
+  void _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => Login()),
+    );
+  }
 
 void main() {
   runApp(MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   @override

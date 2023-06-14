@@ -47,7 +47,14 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Help and Support'),
+        title: Text('Help and Support', 
+            style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  
+                ),
+            ),
       ),
       drawer: Drawer(
         child: ListView(
@@ -61,6 +68,7 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),

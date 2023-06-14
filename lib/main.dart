@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:semester_project/profile.dart';
 import 'signup.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
