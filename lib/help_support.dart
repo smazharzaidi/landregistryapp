@@ -26,7 +26,7 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
     ),
     HelpTopic(
       question: 'How do I set up my system?',
-      answer: 'To reset your password, go to the login screen and tap on the Forgot Password link. Follow the instructions provided to reset your password.',
+      answer: 'To set up your system, you need to have sign up with your correct credentials, then you will be provided with step by setp guidelines. Follow those instructions provided to set up your account. you can login again to see further updates',
     ),
   ];
 

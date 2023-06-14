@@ -94,7 +94,7 @@ class Profile extends StatelessWidget {
               child: CircleAvatar(
                 radius: 60,
                 backgroundImage: NetworkImage(
-                  'https://example.com/profile_picture.jpg',
+                  'https://example.com/profile_picture',
                 ),
               ),
             ),
